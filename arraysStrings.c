@@ -58,20 +58,12 @@ void *joinrev_generic(void *vects1, void *vects2, int typeSize, int numElementsA
 }
 
 int readTextAddBinary(char *a, char *b) {
-	// take input file name (a), and output file name (b), and assign to filenames
-	
-	char fname[12];
-	memcpy(fname, &a[0], 11);
-	fname[11] = '\0';
-	
-	char output[12];
-	memcpy(output, &b[0], 11);
-	output[11] = '\0';
+
 	FILE * ifp;
 	FILE * ofp;
 
-	ifp = fopen (fname, "r");
-	ofp = fopen (output, "w");
+	ifp = fopen (a, "r");
+	ofp = fopen (b, "w");
 	
 	vector vector1;
 	vector vector2;
@@ -94,41 +86,23 @@ int readTextAddBinary(char *a, char *b) {
 }
 
 int readBinaryNormText(char *a, char *b) {
-	char fname[12];
-	memcpy(fname, &a[0], 11);
-	fname[11] = '\0';
-	
-	char output[9];
-	memcpy(output, &b[0], 8);
-	output[8] = '\0';
 	
 	FILE * ifp;
 	FILE * ofp;
 
-	ifp = fopen (fname, "r");
-	ofp = fopen (output, "w");
+	ifp = fopen (a, "rb");
+	ofp = fopen (b, "w");
 	
-	vector* vector1 = malloc(sizeof(vector));
 	vector norm;
-	
-	float x, y, z, length;
+	vector *vector1 = &norm;
+	float x, y, z;
 	
 	char line[1024];
-	while (fgets(line, sizeof(line), ifp)) {
-		sscanf(line, "%f %f %f\n", &x, &y, &z);
-		//fprintf(stderr, "%f %f %f\n", x, y, z);
-		*vector1 = vector_init(x, y, z);
-		if (!vector_normalize(vector1)) {
-			fprintf(ofp, "%f\t%f\t%f\t%f\t", (*vector1).x, (*vector1).y, (*vector1).z, (*vector1).length);
-		}
-		//norm = vector_init(x, y, z);
-		//vector_normalize((vector*)norm);
+	for (int i = 0; i < 10; i++) {
+		fread(&norm, sizeof(norm), 1, ifp);
+		vector_normalize(vector1);
 		
-		//fprintf(stderr, "%f %f %f %f\n", (*vector1).x, (*vector1).y, (*vector1).z, (*vector1).length);
-		//fwrite(&vector1, sizeof(vector1), 1, ofp);
-		
-		//fprintf(ofp, "%f\t%f\t%f\t%f\t", norm.x, norm.y, norm.z, norm.length);
-		//vector1 = malloc(sizeof(vector));
+		fprintf(ofp, "%f\t%f\t%f\t%f\t", norm.x, norm.y, norm.z ,norm.length);
 	}
 	fclose(ifp);
 	fclose(ofp);
@@ -136,11 +110,110 @@ int readBinaryNormText(char *a, char *b) {
 }
 
 int readNormTextWriteNormBinary(char *a, char *b) {
-	// string tok
+	
+	FILE * ifp;
+	FILE * ofp;
+
+	ifp = fopen (a, "r");
+	ofp = fopen (b, "w");
+	
+	if (!ifp) {
+		fprintf(stderr, "Unable to find requested file.\n");
+		return 1;
+	}
+	
+	vector vector1;
+	vector vector2;
+	int leng;
+	float x, y, z, length;
+	
+	fseek(ifp, 0, SEEK_END);
+	leng = ftell(ifp);
+	char str[leng];
+	char delim  = '\t';
+	char *token;
+	char *line = malloc(leng + 1);
+	char c;
+	
+	for (int i; i < leng + 1; i++) {
+		if (c = fgetc(ifp) != EOF) {
+			*line++ = c;
+		}
+	}
+	
+	//while (fgets(line, sizeof(line), ifp)) {
+		//sscanf(line, "%f\t%f\t%f\t%f\t%f\t%f\t", &x, &y, &z, &length);
+		////vector1 = vector_init(x, y, z);
+		
+		
+		//fprintf(stderr, "%f %f %f %f\n", x, y, z, length);
+		//fwrite(&vector1, sizeof(vector1), 1, ofp);
+	//}
+	
+	
+	//char line[leng];
+	
+	//fread(str, leng + 1, 1, ifp);
+	printf("%s\n", "hello");
+	printf("%d\n", leng);
+	printf("%s\n", str);
+	printf("%s\n", line);
+	
+	//do 
+    //{
+      //*line++ = (char)fgetc(ifp);
+
+    //} while(*line != EOF);
+	
+	
+	//for (int i = 0; i < leng; i++) {
+		//line[i] = (char)fgetc(ifp);
+	//}
+	printf("%s\n", line);
+	fclose(ifp);
+	//while (fgets(line, sizeof(line), ifp)) {
+		//sscanf(line, "%s", &str);	
+		//// fprintf(stderr, "%f %f %f %f\n", sum.x, sum.y, sum.z, sum.length);
+	//}
+	
+	//token = strtok(str, s);
+	//while (token != NULL) {
+		
+		//fwrite(&sum, sizeof(sum), 1, ofp);
+		//token = strtok(str, s);
+	//}	
+	return 0;
 }
 
 int wc(char *a) {
+	FILE * ifp;
+	FILE * ofp;
+	ifp = fopen (a, "r");
+	if (!ifp) {
+		fprintf(stderr, "Unable to find requested file.\n");
+		return 1;
+	}
 	
+	int numChars = 0;
+	int numWords = 0;
+	int numLines = 0;
+	char c;
+	
+	while (c = fgetc(ifp) != EOF) {
+		if (!isspace(c) && c != '\n') {
+			numChars++;
+		}
+		if (isspace(c)) {
+			numWords++;
+		}
+		if (c == '\n') {
+			numLines++;
+		}
+	}
+	
+	fclose(ifp);
+	printf("Number of characters: %d \n Number of words: %d \n Number of lines: %d\n", numChars, numWords, numLines);
+	return 0;
 }
 
 

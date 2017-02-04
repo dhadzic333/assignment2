@@ -51,7 +51,8 @@ int main(){
 	}	
 	
 	//Bonus - 1 bonus point
-	//Write a function wc that reads in the text file given and count the number of lines, number of words and number of characters. The output should be the same as given by the UNIX function wc i.e by typing the command "wc gettysburg.txt"
+	//Write a function wc that reads in the text file given and count the number of lines, number of words and number of characters. The output should be the same as 
+	//given by the UNIX function wc i.e by typing the command "wc gettysburg.txt"
 	//Hint read in char by char and use the built in C isspace() function to determine if the character is whitespace
 	
 	if(wc("gettysburg.txt")){
