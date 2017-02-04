@@ -65,6 +65,11 @@ int readTextAddBinary(char *a, char *b) {
 	ifp = fopen (a, "r");
 	ofp = fopen (b, "w");
 	
+	if (!ifp) {
+		fprintf(stderr, "Unable to find requested file.\n");
+		return 1;
+	}
+	
 	vector vector1;
 	vector vector2;
 	vector sum;
@@ -93,11 +98,14 @@ int readBinaryNormText(char *a, char *b) {
 	ifp = fopen (a, "rb");
 	ofp = fopen (b, "w");
 	
+	if (!ifp) {
+		fprintf(stderr, "Unable to find requested file.\n");
+		return 1;
+	}
+	
 	vector norm;
 	vector *vector1 = &norm;
-	float x, y, z;
 	
-	char line[1024];
 	for (int i = 0; i < 10; i++) {
 		fread(&norm, sizeof(norm), 1, ifp);
 		vector_normalize(vector1);
@@ -122,72 +130,43 @@ int readNormTextWriteNormBinary(char *a, char *b) {
 		return 1;
 	}
 	
-	vector vector1;
-	vector vector2;
-	int leng;
-	float x, y, z, length;
 	
 	fseek(ifp, 0, SEEK_END);
-	leng = ftell(ifp);
-	char str[leng];
-	char delim  = '\t';
+	int leng = ftell(ifp);
+	char* delim  = '\t';
 	char *token;
-	char *line = malloc(leng + 1);
-	char c;
+	char *line = 0;
+	float x, y, z, vlength;
+	vector vector1;
 	
-	for (int i; i < leng + 1; i++) {
-		if (c = fgetc(ifp) != EOF) {
-			*line++ = c;
-		}
+	fseek(ifp, 0, SEEK_SET);
+	line = malloc(leng);
+	fread(line, 1, leng, ifp);
+	
+	token = strtok(line, delim);
+	
+	for (int i = 0; i < 10; i++) {
+		x = atof(token);
+		token = strtok(NULL, delim);
+		y = atof(token);
+		token = strtok(NULL, delim);
+		z = atof(token);
+		token = strtok(NULL, delim);
+		vlength = atof(token);
+		token = strtok(NULL, delim);
+		vector1 = vector_init(x, y, z);
+		vector1.length = vlength;
+		fwrite(&vector1, sizeof(vector), 1, ofp);
 	}
 	
-	//while (fgets(line, sizeof(line), ifp)) {
-		//sscanf(line, "%f\t%f\t%f\t%f\t%f\t%f\t", &x, &y, &z, &length);
-		////vector1 = vector_init(x, y, z);
-		
-		
-		//fprintf(stderr, "%f %f %f %f\n", x, y, z, length);
-		//fwrite(&vector1, sizeof(vector1), 1, ofp);
-	//}
+	free(line);
+	fclose(ofp);
 	
-	
-	//char line[leng];
-	
-	//fread(str, leng + 1, 1, ifp);
-	printf("%s\n", "hello");
-	printf("%d\n", leng);
-	printf("%s\n", str);
-	printf("%s\n", line);
-	
-	//do 
-    //{
-      //*line++ = (char)fgetc(ifp);
-
-    //} while(*line != EOF);
-	
-	
-	//for (int i = 0; i < leng; i++) {
-		//line[i] = (char)fgetc(ifp);
-	//}
-	printf("%s\n", line);
-	fclose(ifp);
-	//while (fgets(line, sizeof(line), ifp)) {
-		//sscanf(line, "%s", &str);	
-		//// fprintf(stderr, "%f %f %f %f\n", sum.x, sum.y, sum.z, sum.length);
-	//}
-	
-	//token = strtok(str, s);
-	//while (token != NULL) {
-		
-		//fwrite(&sum, sizeof(sum), 1, ofp);
-		//token = strtok(str, s);
-	//}	
 	return 0;
 }
 
 int wc(char *a) {
 	FILE * ifp;
-	FILE * ofp;
 	ifp = fopen (a, "r");
 	if (!ifp) {
 		fprintf(stderr, "Unable to find requested file.\n");
@@ -199,16 +178,34 @@ int wc(char *a) {
 	int numLines = 0;
 	char c;
 	
-	while (c = fgetc(ifp) != EOF) {
+	char line[1024];
+	
+	while ((c = fgetc(ifp) != EOF)) {
 		if (!isspace(c) && c != '\n') {
 			numChars++;
 		}
-		if (isspace(c)) {
+	}
+	
+	ifp = fopen (a, "r");
+	if (!ifp) {
+		fprintf(stderr, "Unable to find requested file.\n");
+		return 1;
+	}
+	
+	while ((c = fgetc(ifp) != EOF)) {
+		if (isspace(c) || c == '\n' || c == '\t') {
 			numWords++;
 		}
-		if (c == '\n') {
-			numLines++;
-		}
+	}
+	
+	ifp = fopen (a, "r");
+	if (!ifp) {
+		fprintf(stderr, "Unable to find requested file.\n");
+		return 1;
+	}
+	
+	while (fgets(line, sizeof(line), ifp)) {
+		numLines++;
 	}
 	
 	fclose(ifp);
